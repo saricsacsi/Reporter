@@ -11,7 +11,7 @@ import './StandardToken.sol';
  * Note they can later distribute these tokens as they wish using `transfer` and other
  * `StandardToken` functions.
  */
-contract ReporterToken is StandardToken, {
+contract ReporterToken is StandardToken {
 
   string public constant name = "ReporterToken";
   string public constant symbol = "NEWS";
