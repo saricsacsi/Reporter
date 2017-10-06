@@ -309,7 +309,7 @@ contract Presale is Ownable,Pausable{
 
  
   bool public freeForAll = true;    // The token being sold
-  bool    public saleFinished;
+  bool public saleFinished;
   ReporterToken public token;  // ??? here will be the  token address
 
   // start and end timestamps where investments are allowed (both inclusive)
