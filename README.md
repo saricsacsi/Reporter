@@ -2,21 +2,28 @@
 
 Presale for Reporter Token
 
-- PreSaleReporter V2 :  use the RepToken
-- PreSaleReporter V3 :  use the ReporterToken 
+the contract was deployd to the ropsten blockchain
+contract address: 
+0xb0FEE9206098a131ad4B766a6Ce7A1d25bE7C8Fc
 
-RepToken, ReporterToken are same, just first time was a bug in the Reporter Token what i try to find it.
+you can see on etherscan.io
 
-Missing:
+test result: 
 
--- Limit or other separating things to the different tiers
--- Finalize function
+- the time is working
+- authorization is ok, the owner can accept  ardressis
+- from this adress you can send ether to the multisig wallet
+- we see in this wallet the sended amount
 
-And more???? 
+Missing/under testing
 
-questions:
+- splitter function
+- finilize function
 
-- can I give the rate or we will get from Web3sj?  / we want to use different rate in different tiers
-- From where I get the datas to authorised accouts?
-- 
+
+
+
+
+
+
 

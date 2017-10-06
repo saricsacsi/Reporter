@@ -307,7 +307,7 @@ contract ReporterToken is StandardToken {
 contract Presale is Ownable,Pausable{
   using SafeMath for uint256;
 
- 
+
   bool public freeForAll = true;    // The token being sold
   bool public saleFinished;
   ReporterToken public token;  // ??? here will be the  token address
@@ -317,7 +317,7 @@ contract Presale is Ownable,Pausable{
 //now 10.06 23.13
 
 
-  uint256 public stopTime = 1509043252; 
+  uint256 public stopTime = 1509043252;
   // Human time (GMT): 2017. October 26., Thursday 18:40:52
   //Human time (your time zone): 2017. október 26., csütörtök 20:40:52 GMT+02:00
 
@@ -336,7 +336,7 @@ contract Presale is Ownable,Pausable{
   // from DA simplecontract to create an array for the authorised users addresses
   // and for the amounts what they sent
     mapping (address => uint256) public deposits;
-    mapping (address => bool) public authorised; 
+    mapping (address => bool) public authorised;
 
  /**
      * @dev throws if person sending is not authorised or sends nothing
@@ -389,13 +389,13 @@ contract Presale is Ownable,Pausable{
 
 
   function Presale() {
-    require(startTime >= now);
+    require(startTime <= now);
     require(stopTime >= startTime);
     require(rate > 0);
     require(wallet != 0x0);
 
     token = createTokenContract();  // ha meglévő token addresse kerül be akkor ez as or nem kell talán
-   
+
   }
 
   // creates the token to be sold.
@@ -440,7 +440,7 @@ contract Presale is Ownable,Pausable{
     bool nonZeroPurchase = msg.value != 0;
     return withinPeriod && nonZeroPurchase;
   }
- 
+
   // @return true if crowdsale event has ended
   function hasEnded() public constant returns (bool) {
     return now > stopTime;
