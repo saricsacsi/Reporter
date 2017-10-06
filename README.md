@@ -11,6 +11,7 @@ you can see on etherscan.io
 test result: 
 
 - the time is working
+- the contract create the Reporter token
 - authorization is ok, the owner can accept  ardressis
 - from this adress you can send ether to the multisig wallet
 - we see in this wallet the sended amount
