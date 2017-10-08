@@ -1,4 +1,3 @@
-
 pragma solidity ^0.4.11;
 
 /**
@@ -243,7 +242,31 @@ contract StandardToken is ERC20, BasicToken {
     return allowed[_owner][_spender];
   }
 
-  
+  /**
+   * approve should be called when allowed[_spender] == 0. To increment
+   * allowed value is better to use this function to avoid 2 calls (and wait until
+   * the first transaction is mined)
+   * From MonolithDAO Token.sol
+   */
+  function increaseApproval (address _spender, uint _addedValue)
+    returns (bool success) {
+    allowed[msg.sender][_spender] = allowed[msg.sender][_spender].add(_addedValue);
+    Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
+    return true;
+  }
+
+  function decreaseApproval (address _spender, uint _subtractedValue)
+    returns (bool success) {
+    uint oldValue = allowed[msg.sender][_spender];
+    if (_subtractedValue > oldValue) {
+      allowed[msg.sender][_spender] = 0;
+    } else {
+      allowed[msg.sender][_spender] = oldValue.sub(_subtractedValue);
+    }
+    Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
+    return true;
+  }
+
 
 }
 /**
@@ -252,13 +275,13 @@ contract StandardToken is ERC20, BasicToken {
  * Note they can later distribute these tokens as they wish using `transfer` and other
  * `StandardToken` functions.
  */
-contract ReporterToken is StandardToken,Ownable {
+contract ReporterToken is StandardToken {
 
   string public constant name = "ReporterToken";
   string public constant symbol = "NEWS";
   uint8 public constant decimals = 2;
 
-  uint256 public constant INITIAL_SUPPLY = 400000000 * (10 ** uint256(decimals)); //40 000 000 token, osztható 4 000 000 000 dr-ra
+  uint256 public constant INITIAL_SUPPLY = 40000000 * (10 ** uint256(decimals));
 
   /**
    * @dev Constructor that gives msg.sender all of existing tokens.
@@ -280,16 +303,13 @@ contract ReporterToken is StandardToken,Ownable {
  * on a token per ETH rate. Funds collected are forwarded to a wallet
  * as they arrive.
  */
-contract Presale is Ownable,Pausable,ReporterToken {
+contract Presale is Ownable,Pausable,ReporterToken{
   using SafeMath for uint256;
 
+
   bool public freeForAll = true;    // The token being sold
-  bool public saleFinished;    // used???
-  ReporterToken public token;  //used???
- // Token Cap for each rounds
-   uint256 public saleCap = 24000000; // ennyi kerül most piacra
-
-
+  bool public saleFinished;
+  ReporterToken public token;  // ??? here will be the  token address
 
   // start and end timestamps where investments are allowed (both inclusive)
   uint256 public startTime = 1507308852;
@@ -304,23 +324,18 @@ contract Presale is Ownable,Pausable,ReporterToken {
   address public wallet = 0xc6E47707421Ed9F74ca0a00CC8aD43cB7aafEB00;// multisig wallet address
 // owners: 009ecd6b08d0798c10f491c78d6d0d6e9c600919 AND 004c2db4e3721c6bf5edb49767ef003ecb68e00a
 
-  
+  uint256 public saleCap = 24000000; // ennyi kerül most piacra
 
   // how many token units a buyer gets per wei
-  uint256 public rate = 1000; // used???
+  uint256 public rate = 1000;
 
   // amount of raised money in wei
   uint256 public weiRaised;
 
-
- 
   // from DA simplecontract to create an array for the authorised users addresses
   // and for the amounts what they sent
     mapping (address => uint256) public deposits;
     mapping (address => bool) public authorised;
- 
-// XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX end of initialization xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
- 
 
  /**
      * @dev throws if person sending is not authorised or sends nothing
@@ -330,13 +345,10 @@ contract Presale is Ownable,Pausable,ReporterToken {
         require (msg.value > 0);
         require (now >= startTime);
         require (now <= stopTime);
-        require (!saleFinished); //used???
+        require (!saleFinished);
         require(!paused);
         _;
     }
-
-
-
 
      /**
      * @dev authorise an account to participate
@@ -367,11 +379,12 @@ contract Presale is Ownable,Pausable,ReporterToken {
 
   /**
    * event for token purchase logging
+   * @param purchaser who paid for the tokens
    * @param beneficiary who got the tokens
    * @param value weis paid for purchase
    * @param amount amount of tokens purchased
    */
-  event TokenPurchase(address indexed beneficiary, uint256 value, uint256 amount);
+  event TokenPurchase(address indexed purchaser, address indexed beneficiary, uint256 value, uint256 amount);
 
 
   function Presale() {
@@ -380,65 +393,39 @@ contract Presale is Ownable,Pausable,ReporterToken {
     require(rate > 0);
     require(wallet != 0x0);
 
-    
-    balances[wallet] = totalSupply.sub(saleCap);
-    balances[0xb1] = saleCap;
-  }
+    token = createTokenContract();  // ha meglévő token addresse kerül be akkor ez as or nem kell talán
 
-  function supply() internal returns (uint256) {
-        return balances[0xb1];
-    }
+  }
 
   // creates the token to be sold.
   // override this method to have crowdsale of a specific mintable token.
-  //function createTokenContract() internal returns (ReporterToken) {
-  //  return new ReporterToken();
-  //}
+  function createTokenContract() internal returns (ReporterToken) {
+    return new ReporterToken();
+  }
 
   // fallback function can be used to buy tokens
   function () payable onlyAuthorised{
-    buyTokens(msg.sender);
+    buyTokens(msg.sender, msg.value);
   }
 
-  function getCurrentTimestamp() internal returns (uint256) {
-        return now;
-    }
-
-  function getRateAt(uint256 at) constant returns (uint256) {
-        if (at < startTime) {
-            return 0;
-        } else if (at < (startTime + 7 days)) {
-            return 1500;
-        } else if (at < (startTime + 14 days)) {
-            return 1250;
-        } else {
-            return 0;
-        }
-    }
-
   // low level token purchase function
-  function buyTokens(address beneficiary) internal {
+  function buyTokens(address beneficiary, uint256 value) internal {
     require(beneficiary != 0x0);
-    require(validPurchase());
+    require(validPurchase() );
+  
 
-    uint256 weiAmount = msg.value;
+    uint256 weiAmount = value;
 
-    // Calculate token amount to be purchased
-        uint256 actualRate = getRateAt(getCurrentTimestamp());
-        uint256 amount = weiAmount.mul(actualRate);
-    require(msg.value >= 0.1 ether);
+    // calculate token amount to be created
+    uint256 tokens = weiAmount.mul(rate);
+
     // update state
     weiRaised = weiRaised.add(weiAmount);
 
-    // note the contribution
-    deposits[msg.sender] += msg.value;
+    balances[beneficiary] = balances[beneficiary].add(tokens);
+    //token.mint(beneficiary, tokens);
+    TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
 
-    // Transfer
-        balances[0xb1] = balances[0xb1].sub(amount);
-        balances[beneficiary] = balances[beneficiary].add(amount);
-        TokenPurchase(beneficiary, weiAmount, amount);
-
-   
     forwardFunds();
   }
 
@@ -454,16 +441,6 @@ contract Presale is Ownable,Pausable,ReporterToken {
     bool nonZeroPurchase = msg.value != 0;
     return withinPeriod && nonZeroPurchase;
   }
-
-   function finalize() onlyOwner {
-        require(hasEnded());
-
-
-        // Transfer the rest of token to Cobinhood
-        balances[wallet] = balances[wallet].add(balances[0xb1]);
-        balances[0xb1] = 0;
-    }
-
 
   // @return true if crowdsale event has ended
   function hasEnded() public constant returns (bool) {

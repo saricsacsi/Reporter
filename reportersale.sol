@@ -303,7 +303,7 @@ contract ReporterToken is StandardToken {
  * on a token per ETH rate. Funds collected are forwarded to a wallet
  * as they arrive.
  */
-contract Presale is Ownable,Pausable{
+contract Presale is Ownable,Pausable,ReporterToken{
   using SafeMath for uint256;
 
 
@@ -405,16 +405,16 @@ contract Presale is Ownable,Pausable{
 
   // fallback function can be used to buy tokens
   function () payable onlyAuthorised{
-    buyTokens(msg.sender);
+    buyTokens(msg.sender, msg.value);
   }
 
   // low level token purchase function
-  function buyTokens(address beneficiary) internal {
+  function buyTokens(address beneficiary, uint256 value) internal {
     require(beneficiary != 0x0);
     require(validPurchase() );
-    require(balanceOf(valami) < saleCap);
+  
 
-    uint256 weiAmount = msg.value;
+    uint256 weiAmount = value;
 
     // calculate token amount to be created
     uint256 tokens = weiAmount.mul(rate);
@@ -422,6 +422,7 @@ contract Presale is Ownable,Pausable{
     // update state
     weiRaised = weiRaised.add(weiAmount);
 
+    balances[beneficiary] = balances[beneficiary].add(tokens);
     //token.mint(beneficiary, tokens);
     TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
 
