@@ -283,7 +283,6 @@ contract ReporterToken is StandardToken,Ownable {
 contract Presale is Ownable,Pausable,ReporterToken {
   using SafeMath for uint256;
 
-
   bool public freeForAll = true;    // The token being sold
   bool public saleFinished;    // used???
   ReporterToken public token;  //used???

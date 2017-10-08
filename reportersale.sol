@@ -1,4 +1,3 @@
-
 pragma solidity ^0.4.11;
 
 /**
@@ -282,7 +281,7 @@ contract ReporterToken is StandardToken {
   string public constant symbol = "NEWS";
   uint8 public constant decimals = 2;
 
-  uint256 public constant INITIAL_SUPPLY = 400 * (10 ** uint256(decimals));
+  uint256 public constant INITIAL_SUPPLY = 40000000 * (10 ** uint256(decimals));
 
   /**
    * @dev Constructor that gives msg.sender all of existing tokens.
@@ -325,7 +324,7 @@ contract Presale is Ownable,Pausable{
   address public wallet = 0xc6E47707421Ed9F74ca0a00CC8aD43cB7aafEB00;// multisig wallet address
 // owners: 009ecd6b08d0798c10f491c78d6d0d6e9c600919 AND 004c2db4e3721c6bf5edb49767ef003ecb68e00a
 
-
+  uint256 public saleCap = 24000000; // ennyi kerül most piacra
 
   // how many token units a buyer gets per wei
   uint256 public rate = 1000;
@@ -412,7 +411,8 @@ contract Presale is Ownable,Pausable{
   // low level token purchase function
   function buyTokens(address beneficiary) internal {
     require(beneficiary != 0x0);
-    require(validPurchase());
+    require(validPurchase() );
+    require(balanceOf(valami) < saleCap);
 
     uint256 weiAmount = msg.value;
 
