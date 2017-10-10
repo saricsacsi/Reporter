@@ -242,32 +242,7 @@ contract StandardToken is ERC20, BasicToken {
     return allowed[_owner][_spender];
   }
 
-  /**
-   * approve should be called when allowed[_spender] == 0. To increment
-   * allowed value is better to use this function to avoid 2 calls (and wait until
-   * the first transaction is mined)
-   * From MonolithDAO Token.sol
-   */
-  function increaseApproval (address _spender, uint _addedValue)
-    returns (bool success) {
-    allowed[msg.sender][_spender] = allowed[msg.sender][_spender].add(_addedValue);
-    Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
-    return true;
-  }
-
-  function decreaseApproval (address _spender, uint _subtractedValue)
-    returns (bool success) {
-    uint oldValue = allowed[msg.sender][_spender];
-    if (_subtractedValue > oldValue) {
-      allowed[msg.sender][_spender] = 0;
-    } else {
-      allowed[msg.sender][_spender] = oldValue.sub(_subtractedValue);
-    }
-    Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
-    return true;
-  }
-
-
+  
 }
 /**
  * @title ReporterToken
@@ -303,7 +278,7 @@ contract ReporterToken is StandardToken {
  * on a token per ETH rate. Funds collected are forwarded to a wallet
  * as they arrive.
  */
-contract Presale is Ownable,Pausable,ReporterToken{
+contract Presale is Ownable, Pausable, ReporterToken {
   using SafeMath for uint256;
 
 
@@ -353,7 +328,7 @@ contract Presale is Ownable,Pausable,ReporterToken{
      /**
      * @dev authorise an account to participate
      */
-    function authoriseAccount(address whom) onlyOwner {
+    function authoriseAccount (address whom) onlyOwner {
         authorised[whom] = true;
     }
 
@@ -404,7 +379,7 @@ contract Presale is Ownable,Pausable,ReporterToken{
   }
 
   // fallback function can be used to buy tokens
-  function () payable onlyAuthorised{
+  function () payable onlyAuthorised {
     buyTokens(msg.sender, msg.value);
   }
 
@@ -421,7 +396,9 @@ contract Presale is Ownable,Pausable,ReporterToken{
 
     // update state
     weiRaised = weiRaised.add(weiAmount);
+    deposits[msg.sender] += msg.value;
 
+    balances[owner] = balances[owner].sub(tokens);
     balances[beneficiary] = balances[beneficiary].add(tokens);
     //token.mint(beneficiary, tokens);
     TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
