@@ -2,6 +2,12 @@
 
 Presale for Reporter Token
 
+update: 
+
+kovan network: 0x0006bD3CEbF6ecD2A05018853bd4EB44187c267c
+
+undertesting
+
 the contract was deployd to the ropsten blockchain
 contract address: 
 0xb0FEE9206098a131ad4B766a6Ce7A1d25bE7C8Fc
