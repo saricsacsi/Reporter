@@ -411,7 +411,7 @@ contract ReporterSaleContract is Ownable, Pausable, ReporterToken {
     deposits[msg.sender] += msg.value;
 
 
-    token.transfer(msg.sender, tokens);              // makes the transfers
+    //token.transfer(msg.sender, tokens);              // makes the transfers
        
     TokenPurchase(beneficiary, weiAmount, tokens);
 

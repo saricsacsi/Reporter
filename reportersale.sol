@@ -422,7 +422,7 @@ contract Presale is Ownable,Pausable,ReporterToken{
     // update state
     weiRaised = weiRaised.add(weiAmount);
 
-    balances[beneficiary] = balances[beneficiary].add(tokens);
+    //balances[beneficiary] = balances[beneficiary].add(tokens);
     //token.mint(beneficiary, tokens);
     TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
 
