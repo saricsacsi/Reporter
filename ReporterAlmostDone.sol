@@ -264,7 +264,8 @@ contract ReporterToken is StandardToken {
    
   function ReporterToken() {
     totalSupply = INITIAL_SUPPLY;
-    balances[ReporterDeposit] = 24000000 * (10 ** uint256(decimals));
+    balances[msg.sender] = INITIAL_SUPPLY;
+
   }
 
 }
@@ -283,29 +284,31 @@ contract Presale is Ownable,Pausable,ReporterToken{
   using SafeMath for uint256;
 
  
-  bool public freeForAll = true;    // The token being sold
+  bool public freeForAll = true;    //  for the testing or uf dont important the whitelist
   bool public saleFinished;
   ReporterToken public token;  // ??? here will be the  token address
  address public ReporterDeposit  = 0xCf850587D156551a08981F503cdC80e9f278E0D7 ;
     
-  // start and end timestamps where investments are allowed (both inclusive)
-  uint256 public startTime = 1507308852;
-//now 10.06 23.13
+   // start and end timestamps where investments are allowed (both inclusive)
+  uint256 public startTime = 1507933922;
+   // 2017.10.13 22.32
 
-
-  uint256 public stopTime = 1509043252; 
-  // Human time (GMT): 2017. October 26., Thursday 18:40:52
-  //Human time (your time zone): 2017. október 26., csütörtök 20:40:52 GMT+02:00
+  uint256 public stopTime = 1509748322; 
+   // 2017.11.03 22.32
+  
 
   // address where funds are collected
   address public wallet = 0xB7f20297F23C12a5b4fd170beE1BB0fc47d1639d;//  wallet to ether
 // owners: 009ecd6b08d0798c10f491c78d6d0d6e9c600919 AND 004c2db4e3721c6bf5edb49767ef003ecb68e00a
 
-  // how many token units a buyer gets per wei
-  uint256 public rate = 1000;
+  address public wallet1 = 0x003107F046dF8F3c3d43266872811c0bcebd2E1A;
+  address public wallet2 = 0x0080f2B3e89B36a692ba738448406bd3D6b772CD;
 
+  
   // amount of raised money in wei
   uint256 public weiRaised;
+
+  uint256 public saleCap;
 
   // from DA simplecontract to create an array for the authorised users addresses
   // and for the amounts what they sent
@@ -333,7 +336,7 @@ contract Presale is Ownable,Pausable,ReporterToken{
      */
     function authoriseAccount(address whom) onlyOwner {
         authorised[whom] = true;
-    }
+          }                                 // hogy csináljam ha meg akarom nézni az összes engedélyezett accountot?
 
     /**
      * @dev authorise a lot of accounts in one go
@@ -368,10 +371,16 @@ contract Presale is Ownable,Pausable,ReporterToken{
   function Presale() {
     require(startTime <= now);
     require(stopTime >= startTime);
-    require(rate > 0);
+    //require(rate > 0);
     require(wallet != 0x0);
 
     token = createTokenContract();  // ha meglévő token addresse kerül be akkor ez as or nem kell talán
+
+    saleCap =  24000000 * (10 ** uint256(decimals));
+
+    balances[msg.sender] = totalSupply.sub(saleCap);
+
+    balances[ReporterDeposit] = saleCap;  
   
   }
 
@@ -412,15 +421,20 @@ contract Presale is Ownable,Pausable,ReporterToken{
 
   // low level token purchase function
   function buyTokens(address beneficiary, uint256 weiAmount) internal {
+    require(saleActive());
     require(beneficiary != 0x0);
     require(validPurchase());
   
 
-       // calculate token amount to be created
+    // calculate token amount to be created
 
-   // uint256 actualRate = getRateAt(getCurrentTimestamp()); 
-    uint256 tokens = 5000000;
-   
+    //uint256 actualRate = getRateAt(getCurrentTimestamp()); 
+    //uint256 rate = actualRate * 10**2;
+    //uint256 tokens = weiAmount.mul(rate);
+    uint256 tokens = 1000;
+
+
+
     // update state
     weiRaised = weiRaised.add(weiAmount);
     deposits[msg.sender] += msg.value;
@@ -432,16 +446,7 @@ contract Presale is Ownable,Pausable,ReporterToken{
     balances[beneficiary] = balances[beneficiary].add(tokens);
 
        
-    //TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
-
-// here is the problem somewhere  IF I WRITE HERE ANYTHING I AM GOING TO BUD INSTRACTIONS
-   // require(supply() >= tokens);
-
-   // balances[ReporterDeposit] = balances[ReporterDeposit].sub(tokens);
-   // balances[beneficiary] = balances[beneficiary].add(tokens);
-  
-   //  token.transfer(beneficiary,tokens);
-  
+    TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
 
     forwardFunds();
   }
@@ -452,6 +457,7 @@ contract Presale is Ownable,Pausable,ReporterToken{
     wallet.transfer(msg.value);
   }
 
+
   // @return true if the transaction can buy tokens
   function validPurchase() internal returns (bool) {
     bool withinPeriod = now >= startTime && now <= stopTime;
@@ -459,10 +465,37 @@ contract Presale is Ownable,Pausable,ReporterToken{
     return withinPeriod && nonZeroPurchase;
   }
  
-  // @return true if crowdsale event has ended
-  function hasEnded() public constant returns (bool) {
-    return now > stopTime;
-  }
+
+
+  function finalize() onlyOwner {
+        require(!saleActive());
+
+        uint256 v = weiRaised % 100;
+        weiRaised = weiRaised + v;
+       
+        uint256 temp;
+        temp = weiRaised / 100; 
+
+        uint256 temp2;
+        temp2 = temp * 15;
+
+
+        uint256 amount1 = temp2 + v;
+        uint256 amount2;
+        amount2 = weiRaised.sub(temp2);
+       
+
+        wallet1.transfer(amount1);
+        wallet2.transfer(amount2);       
+    }
+
+    
+
+  function saleActive() public constant returns (bool) {
+         
+        return (getCurrentTimestamp() >= startTime &&
+                getCurrentTimestamp() < stopTime && supply() > 0);
+    }
 
 
 }
